@@ -1,0 +1,116 @@
+# configuration for generating training patches
+reorganize:
+  # Number of samples per atlas target pair for training
+  num_pos_train: 15
+  num_neg_train: 6
+  # Number of samples per atlas target pair for validation
+  num_pos_val: 4
+  num_neg_val: 1
+  # Patch size 
+  patch_size: [72, 72, 72]
+  test_patch_size: [72, 72, 72]
+  test_patch_spacing: [36, 36, 36]
+  # Number of times of pre augmentation
+  num_aug: 1
+  perc_aug: 1
+  # Number of voxels crobed
+  patch_crop_size: 4
+
+# use a fixed random seed to guarantee that when you run the code twice you will get the same outcome
+# dont use
+# manual_seed: 0
+
+# dataset configuration
+dataset:
+#  train_val_csv: '/home/longxie/DeepLabelFusion/PredictSegFeatures_Sadhana/fold_0/data/split_target.csv'
+
+
+# model configuration
+model:
+  # model class
+  name: MONAI_UNET
+  # number of dimension
+  dimensions: 3
+  # number of input channels to the model
+  in_channels: 5
+  # number of output channels
+  out_channels: 15
+  # number of channels at each level
+  channels: [32, 64, 128]
+  # convolution stride
+  strides: [1, 1, 1]
+  
+  
+
+# trainer configuration
+trainer:
+  # path to latest checkpoint; if provided the training will be resumed from that checkpoint
+  resume: null
+  # how many iterations between validations
+  validate_after_iters: 300
+  # how many iterations between tensorboard logging
+  log_after_iters: 10
+  # max number of epochs
+  epochs: 80
+  # max number of iterations
+  iters: 100000
+  # model with higher eval score is considered better
+  eval_score_higher_is_better: True
+  # deep supervision
+  deep_supervision: False
+  #deep_supervision_weights: [0.1, 0.2, 0.5, 1.0]
+
+# optimizer configuration
+optimizer:
+  # initial learning rate
+  learning_rate: 0.0005
+  # weight decay
+  weight_decay: 0.0001
+
+
+# loss function configuration
+loss:
+  # loss function to be used during training (use weight = sqrt weight)
+  name: GeneralizedDiceLoss
+  # A manual rescaling weight given to each class.
+  weight: [1,1,1,1,1,1,0.1,0.1,1,1,1,1,1,0.1,0.1]
+  # a target value that is ignored and does not contribute to the input gradient
+  ignore_index: null
+  # sigmoid has already been done in the model (final_sigmoind = True in model setting)
+  sigmoid_normalization: False
+  
+
+# evaluation metric configuration
+eval_metric:
+  name: PercCorrectLabel
+  # a target label that is ignored during metric evaluation
+  ignore_index: null
+
+
+lr_scheduler:
+  name: MultiStepLR
+  milestones: [35, 50, 70]
+  gamma: 0.2
+
+
+# data loaders configuration
+loaders:
+  # how many subprocesses to use for data loading
+  num_workers: 2
+  # training and validation batch size
+  train_batch_size: 7
+  val_batch_size: 12
+  test_batch_size: 40
+  # data transformations/augmentations
+  transformer:
+    train:
+      raw:
+        - name: MONAI_ToTensor
+      label:
+        - name: MONAI_ToTensor
+    test:
+      raw:
+        - name: MONAI_ToTensor
+      label:
+        - name: MONAI_ToTensor
+
